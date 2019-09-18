@@ -17,6 +17,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     
     static let share = AsyncSocket()
     
+    fileprivate var timer : Timer!
+    
     override init() {
         super.init()
         
@@ -25,6 +27,21 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         clientSocket.delegate = self
         // 回调主线程
         clientSocket.delegateQueue = DispatchQueue.main
+        
+        
+    }
+    
+    //MARK: 发送心跳包
+    @objc fileprivate func sendText() {
+        
+        let dict = ["type":"ping"]
+        let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
+        let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
+
+        AsyncSocket.share.sendMessage(message: jsonString + "\n")
+        
+        
+ 
     }
     
     func startConnect(){
@@ -47,6 +64,11 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
      */
     internal func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) -> Void {
         //print("connect success")
+        
+        self.timer = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
+        //添加至子线程
+        RunLoop.main.add(self.timer, forMode: .common)
+        
         clientSocket.readData(withTimeout: -1, tag: 0)
     }
     

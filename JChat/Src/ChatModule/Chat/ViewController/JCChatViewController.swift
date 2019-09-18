@@ -1223,11 +1223,11 @@ extension JCChatViewController: SAIToolboxInputViewDataSource, SAIToolboxInputVi
                 let hbVC = SendRedPackageVC()
                 hbVC.gid = (conversation.target as! JMSGGroup).gid
                 
-                let dict = ["hb_infor":["blessing":"text","hb_extra": "text","hb_id": "1234","hb_money": "100","hb_num": "10","is_group": true,"received_id": (self.conversation.target as! JMSGGroup).gid,"send_user_id": "\(self.currentUser.username ?? "")","send_nickname":self.currentUser.nickname ?? "","received_nickname":"","hb_create_time":getCurrentTime(),"sy_hb_num":"1"],"message": "###@@@红包###@@@","type": "hb","status":0] as [String : Any]
+                let dict = ["hb_infor":["blessing":"text","hb_extra": "text","hb_id": "1234","hb_money": "100","hb_num": "10","is_group": true,"received_id": (self.conversation.target as! JMSGGroup).gid,"send_user_id": "\(self.currentUser.username)","send_nickname":self.currentUser.nickname ?? "","received_nickname":"","hb_create_time":getCurrentTime(),"sy_hb_num":"1"],"message": "###@@@红包###@@@","type": "hb","status":0] as [String : Any]
                 let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
                 let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
                 
-                AsyncSocket.share.sendMessage(message: jsonString)
+                AsyncSocket.share.sendMessage(message: jsonString + "\n")
                 return
                 
                 
