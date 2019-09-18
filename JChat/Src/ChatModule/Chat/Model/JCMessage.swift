@@ -432,8 +432,43 @@ extension JMSGMessage {
                         msg.options.showsCard = true
                         msg.name = "红包领取结果"
                     }
+                    
+                    if type == "hb" {
+                        if let hb_infor = dict["hb_infor"] as? [String:Any] {
+                            
+                            if let userName = hb_infor["send_user_id"] as? String,userName != JMSGUser.myInfo().username {
+                                
+                                    msg.options.alignment = .left
+//                                    msg.name = userName
+                                    msg.options.showsCard = true
+//                                346671621
+                                msg.sender = JMSGUser.init(uid: 346671621)
+                                let user = JMSGUser.init(uid: 346671621)
+                                msg.name = user?.nickname ?? user?.username ?? ""
+                                
+                            }
+                            
+                            
+                            
+                            
+                        }
+                    }
                 }
             }
+            
+            
+            if let dic = content.extras as? [String:Any] {
+                
+                if let sendSate = dic["sendSate"] as? String {
+                    
+                    if  sendSate == "success" {
+                        msg.options.state = .sendSucceed
+                    }
+                    
+                }
+            }
+            
+            
         }
         
         //MARK: ******红包结果********MJ

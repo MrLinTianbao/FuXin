@@ -9,6 +9,7 @@
 import UIKit
 import YHPhotoKit
 import MobileCoreServices
+import CocoaAsyncSocket
 
 class JCChatViewController: CTViewController {
     
@@ -43,6 +44,7 @@ class JCChatViewController: CTViewController {
         super.viewDidLoad()
         _init()
         
+        AsyncSocket.share.clientSocket.delegate = self
     }
     
     override func loadView() {
@@ -984,6 +986,7 @@ extension JCChatViewController: JMessageDelegate {
         _updateBadge()
     }
     
+    //MARK: 消息发送结果
     func onSendMessageResponse(_ message: JMSGMessage!, error: Error!) {
         if let error = error as NSError? {
             if error.code == 803009 {
@@ -1009,6 +1012,7 @@ extension JCChatViewController: JMessageDelegate {
         }
     }
     
+    //MARK: 接收离线消息
     func onSyncOfflineMessageConversation(_ conversation: JMSGConversation!, offlineMessages: [JMSGMessage]!) {
         let msgs = offlineMessages.sorted(by: { (m1, m2) -> Bool in
             return m1.timestamp.intValue < m2.timestamp.intValue
@@ -1216,6 +1220,7 @@ extension JCChatViewController: SAIToolboxInputViewDataSource, SAIToolboxInputVi
             self.navigationController?.pushViewController(hbVC)
             
         case "page:redPackage": //红包
+            
             
             
             if isGroup {
@@ -2445,4 +2450,81 @@ fileprivate func convertFromUIImagePickerControllerInfoKeyDictionary(_ input: [U
 // Helper function inserted by Swift 4.2 migrator.
 fileprivate func convertFromUIImagePickerControllerInfoKey(_ input: UIImagePickerController.InfoKey) -> String {
 	return input.rawValue
+}
+
+extension JCChatViewController : GCDAsyncSocketDelegate {
+    
+    /**
+     * 发送成功时回调
+     */
+    func socket(_ sock: GCDAsyncSocket, didWriteDataWithTag tag: Int) {
+        
+
+        let dict = ["hb_infor":["blessing":"text","hb_extra": "text","hb_id": "1234","hb_money": "100","hb_num": "10","is_group": true,"received_id": (self.conversation.target as! JMSGGroup).gid,"send_user_id": "\(self.currentUser.username)","send_nickname":self.currentUser.nickname ?? "","received_nickname":"","hb_create_time":getCurrentTime(),"sy_hb_num":"1"],"message": "###@@@红包###@@@","type": "hb","status":0] as [String : Any]
+        let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
+        let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
+        
+        let content = JMSGTextContent(text: jsonString)
+        content.addStringExtra("success", forKey: "sendSate")
+        
+        let msg = conversation.createMessage(with: content)
+        
+        
+        content.addStringExtra("0", forKey: "msgStatus")
+        content.addStringExtra(msg!.msgId, forKey: "msgId")
+        
+        
+        
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
+            
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
+            
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+                self.chatView.scrollToLast(animated: false)
+            }
+            
+        }
+        
+        self.socket(AsyncSocket.share.clientSocket, didRead: jsonString.data(using: String.Encoding.utf8)!, withTag: -1)
+        
+        AsyncSocket.share.clientSocket.readData(withTimeout: -1, tag: 0)
+        
+        
+    }
+    
+    /**
+     * 收到消息时回调
+     */
+    internal func socket(_ sock: GCDAsyncSocket, didRead data: Data, withTag tag: Int) -> Void {
+        // 1、获取客户端发来的数据，把 NSData 转 NSString
+        let readClientDataString: NSString? = NSString(data: data as Data, encoding: String.Encoding.utf8.rawValue)
+        
+        let dict = ["hb_infor":["blessing":"text","hb_extra": "text","hb_id": "1234","hb_money": "100","hb_num": "10","is_group": true,"received_id": (self.conversation.target as! JMSGGroup).gid,"send_user_id": "龙马","send_nickname":self.currentUser.nickname ?? "","received_nickname":"","hb_create_time":getCurrentTime(),"sy_hb_num":"1"],"message": "###@@@红包###@@@","type": "hb","status":0] as [String : Any]
+        
+        let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
+        let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
+        
+        let content = JMSGTextContent(text: jsonString)
+        content.addStringExtra("success", forKey: "sendSate")
+        
+        let msg = conversation.createMessage(with: content)
+        
+        
+        
+        content.addStringExtra("0", forKey: "msgStatus")
+        content.addStringExtra(msg!.msgId, forKey: "msgId")
+        
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
+            
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
+            
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+                self.chatView.scrollToLast(animated: false)
+            }
+            
+        }
+        
+    }
+    
+    
 }

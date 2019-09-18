@@ -237,10 +237,16 @@ extension AppDelegate : WXApiDelegate {
 //MARK: - JMessage Delegate
 extension AppDelegate: JMessageDelegate,JMSGGroupDelegate {
     
-//    func onReceive(_ message: JMSGMessage!, error: Error!) {
-//
-//
-//    }
+    func onReceive(_ message: JMSGMessage!, error: Error!) {
+
+        MyLog("aaaaaaaa")
+    }
+    
+    //MARK: 接收离线消息
+    func onSyncOfflineMessageConversation(_ conversation: JMSGConversation!, offlineMessages: [JMSGMessage]!) {
+        
+        MyLog("bbbbbbb")
+    }
     
     func onDBMigrateStart() {
         MBProgressHUD_JChat.showMessage(message: "数据库升级中", toView: nil)

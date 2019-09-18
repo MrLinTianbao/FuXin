@@ -34,11 +34,11 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     //MARK: 发送心跳包
     @objc fileprivate func sendText() {
         
-        let dict = ["type":"ping"]
-        let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
-        let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
-
-        AsyncSocket.share.sendMessage(message: jsonString + "\n")
+//        let dict = ["type":"ping"]
+//        let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
+//        let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
+//
+//        AsyncSocket.share.sendMessage(message: jsonString + "\n")
         
         
  
@@ -102,8 +102,9 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
          * init 为初始化连接
          * message 为消息事件
          */
-        let type = json?["type"] as! String
-        switch type {
+        if let type = json?["type"] as? String {
+            
+            switch type {
             case "init": // 初始化连接
                 // 获取客户端ID
                 let client_id = json?["client_id"] as! String
@@ -123,7 +124,9 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 break;
             default:
                 break;
+            }
         }
+        
         
         //print("JSON:", type, client_id)
         //

@@ -290,6 +290,7 @@ extension ExJMessage where Base: JMSGMessage {
         } else {// conversation.ex.isSingle
             let user = conversation.target as! JMSGUser
             message = JMSGMessage.createSingleMessage(with: content, username: user.username)
+            
         }
         return message!
     }

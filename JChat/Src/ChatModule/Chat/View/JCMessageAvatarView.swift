@@ -37,11 +37,13 @@ open class JCMessageAvatarView: UIImageView, JCMessageContentViewType {
             self.image = UIImage.init(named: "AppIcon")
             return
         }
+        
+        
         //****
-        if message.senderAvator != nil {
-            image = message.senderAvator
-            return
-        }
+//        if message.senderAvator != nil {
+//            image = message.senderAvator
+//            return
+//        }
         weak var weakSelf = self
         message.sender?.thumbAvatarData({ (data, id, error) in
             if let data = data {

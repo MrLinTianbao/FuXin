@@ -21,6 +21,9 @@ open class JCMessageCardView: UILabel, JCMessageContentViewType {
     
     open func apply(_ message: JCMessageType) {
         let isRight = message.options.alignment == .right
+        
+        
+        
         text = message.name
         textAlignment = isRight ? .right : .left
     }
