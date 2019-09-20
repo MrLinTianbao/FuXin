@@ -92,7 +92,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         // 打印服务端发来的消息
         print(readClientDataString ?? "")
         
-        AlertClass.showText(_text: readClientDataString! as String)
+//        AlertClass.showText(_text: readClientDataString! as String)
         
         // Data 转 JSON对象
         let json = try? JSONSerialization.jsonObject(with: data, options:.allowFragments) as! [String: Any]
