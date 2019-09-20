@@ -302,6 +302,8 @@
 		6DE51E3D22E8A35400D02108 /* JCTransferContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE51E3C22E8A35400D02108 /* JCTransferContentView.swift */; };
 		6DE87B2922E5DA10000468BD /* ReceiveRedContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE87B2822E5DA10000468BD /* ReceiveRedContent.swift */; };
 		6DE87B2B22E5DA34000468BD /* ReceiveRedContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE87B2A22E5DA34000468BD /* ReceiveRedContentView.swift */; };
+		6DEAF3A82334B9EC002FAA64 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DEAF3A72334B9EC002FAA64 /* AVFoundation.framework */; };
+		6DEAF3AA2334BAD4002FAA64 /* wusheng.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 6DEAF3A92334BAD4002FAA64 /* wusheng.mp3 */; };
 		6DEB891922CDCC2F0036BB1A /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 6DEB891622CDCC2E0036BB1A /* README.txt */; };
 		6DEB891A22CDCC2F0036BB1A /* libWeChatSDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DEB891822CDCC2E0036BB1A /* libWeChatSDK.a */; };
 		6DF0F86B22D80A9B00ADAB40 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF0F86A22D80A9B00ADAB40 /* WebViewController.swift */; };
@@ -874,6 +876,8 @@
 		6DE51E3C22E8A35400D02108 /* JCTransferContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JCTransferContentView.swift; sourceTree = "<group>"; };
 		6DE87B2822E5DA10000468BD /* ReceiveRedContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveRedContent.swift; sourceTree = "<group>"; };
 		6DE87B2A22E5DA34000468BD /* ReceiveRedContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiveRedContentView.swift; sourceTree = "<group>"; };
+		6DEAF3A72334B9EC002FAA64 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		6DEAF3A92334BAD4002FAA64 /* wusheng.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = wusheng.mp3; sourceTree = "<group>"; };
 		6DEB891422CDCC2E0036BB1A /* WXApi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WXApi.h; sourceTree = "<group>"; };
 		6DEB891522CDCC2E0036BB1A /* WXApiObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WXApiObject.h; sourceTree = "<group>"; };
 		6DEB891622CDCC2E0036BB1A /* README.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
@@ -1106,6 +1110,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6DEAF3A82334B9EC002FAA64 /* AVFoundation.framework in Frameworks */,
 				B43BA42B1E8A305500565DB3 /* libsqlite3.tbd in Frameworks */,
 				3D77067622C46BBF00A76AF5 /* libc++.tbd in Frameworks */,
 				B43BA4391E8A30A900565DB3 /* SystemConfiguration.framework in Frameworks */,
@@ -1723,6 +1728,7 @@
 			isa = PBXGroup;
 			children = (
 				6D039D8622C9B85F002EBA73 /* bg_Voice.mp4 */,
+				6DEAF3A92334BAD4002FAA64 /* wusheng.mp3 */,
 			);
 			path = File;
 			sourceTree = "<group>";
@@ -3114,6 +3120,7 @@
 		DDA5C80485C5FFA2C3776F21 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6DEAF3A72334B9EC002FAA64 /* AVFoundation.framework */,
 				3D77067522C46BBE00A76AF5 /* libc++.tbd */,
 				3D77067322C46BA500A76AF5 /* Accelerate.framework */,
 				9DC44374226EEC8B00D35080 /* JMessage.framework */,
@@ -3215,6 +3222,9 @@
 						LastSwiftMigration = 1000;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
 							com.apple.Push = {
 								enabled = 1;
 							};
@@ -3312,6 +3322,7 @@
 				6D5CA81E22BFC73C00054659 /* WalletRecordTbvCell.xib in Resources */,
 				3D97BC4522C1BFC800784ADD /* MineSwitchTbvCell.xib in Resources */,
 				04BE492622C6FF9700C215F6 /* ChangeRemarkNameVC.xib in Resources */,
+				6DEAF3AA2334BAD4002FAA64 /* wusheng.mp3 in Resources */,
 				6D65955122B081F700E22CF2 /* CBHongBaoTableViewCell.xib in Resources */,
 				3D97BC5222C1C55900784ADD /* ChangeUserPasswardVC.xib in Resources */,
 				B4DB28C11E9F7B6C0024AB65 /* yh_image_picked@3x.png in Resources */,

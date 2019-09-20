@@ -9,6 +9,7 @@
 import UIKit
 import JMessage
 import Bugly
+import AVFoundation
 
 public protocol SelfAware: class {
     static func awake()
@@ -80,7 +81,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             UITableView.appearance().estimatedSectionHeaderHeight = 0
         }
         
-       
+        keepRunBackground()
+        
         //腾讯bugly
         Bugly.start(withAppId: "888338bc01")
         
@@ -127,7 +129,45 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     
+    //MARK: 保持app后台运行
+    fileprivate func keepRunBackground() {
+        
+        let session = AVAudioSession.sharedInstance()
+        try! session.setActive(true, options: .init(rawValue: 0))
+        if #available(iOS 10.0, *) {
+            try! session.setCategory(.playback, mode: .default, options: .init(rawValue: 0))
+        } else {
+            
+        }
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+        
+        //播放背景音乐
+        let path = Bundle.main.path(forResource: "wusheng", ofType: "mp3")
+        let url = URL.init(fileURLWithPath: path!)
+        
+        //创建播放器
+        let audioPlayer = try! AVAudioPlayer.init(contentsOf: url)
+        
+        audioPlayer.prepareToPlay()
+        
+        //无限循环播放
+        audioPlayer.numberOfLoops = -1
+        audioPlayer.play()
+        
+//        let timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(getCurrentTime), userInfo: nil, repeats: true)
+//        //添加至子线程
+//        RunLoop.main.add(timer, forMode: .common)
+    }
     
+    //MARK: 获取当前时间
+    @objc fileprivate func getCurrentTime() {
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-DD HH:mm:ss"
+        let dateTime = dateFormatter.string(from: Date())
+    
+        MyLog(dateTime)
+    }
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         JMessage.registerDeviceToken(deviceToken)

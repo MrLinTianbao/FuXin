@@ -13,6 +13,10 @@ class JCMainTabBarController: UITabBarController {
     //MARK: - life cycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // im server连接
+        AsyncSocket.share.startConnect()
+        
         setupChildControllers()
         
         getUserNews()
