@@ -13,4 +13,7 @@ extension Notification.Name {
     
     //微信登录
     static public let wechat_login = Notification.Name(rawValue: "wechat_login")
+    //聊天页面滑动至底部
+    static public let chatScrollToLast = Notification.Name(rawValue: "scrollToLast")
+    
 }

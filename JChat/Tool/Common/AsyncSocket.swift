@@ -175,7 +175,9 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                 
                                                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
                                                     
+                                                    NotificationCenter.default.post(name: .chatScrollToLast, object: nil)
                                                 }
+                                                
                                                 
                                             }
 

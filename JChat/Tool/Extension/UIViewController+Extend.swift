@@ -13,13 +13,13 @@ extension UIViewController {
     
     // MARK: 设置错误提示框
     public func showErrorAlert(title :String? = "网络请求失败",msg:String? = "") {
-//        var errorStr = title
-//        if msg != "" {
-//            errorStr = global_requestFailed
-//
-//        }
-//        
-//        SVProgressHUD.showError(withStatus: errorStr)
+        var errorStr = title
+        if msg != "" {
+            errorStr = msg
+
+        }
+        
+        SVProgressHUD.showError(withStatus: errorStr)
         
         
         
