@@ -76,3 +76,4 @@ var url_rechargeCode = urlStr + "System"
 var url_friendCircle = urlStr + "CircleOfFriends"
 //MARK: 获取交易记录
 var url_invitationRecord = urlStr + "User.invitationRecord"
+

@@ -34,11 +34,11 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     //MARK: 发送心跳包
     @objc fileprivate func sendText() {
         
-//        let dict = ["type":"ping"]
-//        let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
-//        let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
-//
-//        AsyncSocket.share.sendMessage(message: jsonString + "\n")
+        let dict = ["type":"ping"]
+        let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
+        let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
+
+        AsyncSocket.share.sendMessage(message: jsonString + "\n")
         
         
  
@@ -110,18 +110,85 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 let client_id = json?["client_id"] as! String
                 if !client_id.isEmpty { // 存储客户端ID
                     UserDefaults.standard.set(client_id, forKey: "client_id")
+                    
+                    NetworkRequest.requestMethod(.post, URLString: url_bindIM, parameters: ["client_id":client_id,"method":"PUT"], success: { (value, json) in
+                        
+                        
+                    }) {
+                        
+                        
+                    }
                 }
-                break;
-            case "message": // 消息事件
-                // 获取客户端ID
-                let msg_type = json?["msg_type"] as! String
-                if msg_type.isEqual("red") { // 只处理红包事件
-                    //let content = json?["content"] as! String
-                    print(json?["content"])
-                    let noticeContent = JCMessageNoticeContent(text: "test",isRed:true,money: "10")
-                    msg = JCMessage(content: noticeContent)
+               
+            case "hb": // 红包消息事件
+                
+                
+                
+                if var hb_infor = json?["hb_infor"] as? [String:Any] {
+                    if let group_id = hb_infor["group_id"] as? String {
+                        
+                        JMSGGroup.myGroupArray { (result, error) in
+                            if error == nil {
+                                
+                                if let gids = result as? [NSNumber] {
+                                    
+                                    for gid in gids {
+                                        
+                                        if "\(gid)" == "\(group_id)" {
+                                            
+                                            if let send_user_id = hb_infor["send_user_id"] as? String {
+                                                
+                                                hb_infor["userId"] = send_user_id
+                                            }
+                                            
+                                            if let username = hb_infor["send_username"] as? String {
+                                                
+                                                hb_infor["send_user_id"] = username
+                                            }
+                                            
+                                            
+                                                
+                                            hb_infor["hb_id"] = "\(hb_infor["hb_id"] ?? "")"
+                                            
+                                            
+                                            hb_infor["hb_num"] = "\(hb_infor["hb_num"] ?? "")"
+                                            
+                                            var dict = json
+                                            dict?["hb_infor"] = hb_infor
+                                            
+                                            let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict!, options: []) as NSData
+                                            let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
+                                            
+                                            let conversation = JMSGConversation.groupConversation(withGroupId: "\(group_id)")
+                                            
+                                            let content = JMSGTextContent(text: jsonString)
+                                            content.addStringExtra("success", forKey: "sendSate")
+                                            content.addStringExtra("0", forKey: "msgStatus")
+                                            
+                                            let msg = conversation?.createMessage(with: content)
+
+                                            content.addStringExtra(msg!.msgId, forKey: "msgId")
+                                            
+                                            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
+                                                
+                                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
+                                                
+                                                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+                                                    
+                                                }
+                                                
+                                            }
+
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-                break;
+                
+                
+                
             default:
                 break;
             }

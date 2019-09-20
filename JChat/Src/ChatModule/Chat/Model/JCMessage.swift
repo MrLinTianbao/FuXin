@@ -436,15 +436,19 @@ extension JMSGMessage {
                     if type == "hb" {
                         if let hb_infor = dict["hb_infor"] as? [String:Any] {
                             
-                            if let userName = hb_infor["send_user_id"] as? String,userName != JMSGUser.myInfo().username {
+                            if let userId = hb_infor["userId"] as? String,userId != "\(JMSGUser.myInfo().uid)" {
                                 
                                     msg.options.alignment = .left
-//                                    msg.name = userName
                                     msg.options.showsCard = true
-//                                346671621
-                                msg.sender = JMSGUser.init(uid: 346671621)
-                                let user = JMSGUser.init(uid: 346671621)
+                                
+                                let user = JMSGUser.init(uid: Int64(userId) ?? 0)
+                                
+                                msg.sender = user
                                 msg.name = user?.nickname ?? user?.username ?? ""
+                                
+                              
+                                
+                                
                                 
                             }
                             

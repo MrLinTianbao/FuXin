@@ -141,7 +141,7 @@ class SendRedPackageVC: CTViewController {
             
             
             
-            NetworkRequest.requestMethod(.post, URLString: url_sendRayRed, parameters: ["amount":Float(self.tfMoney.text!) ?? 0,"blessing":tipText,"pay_pass":passwordStr ?? "","type":self.redType,"number":"\(rayNumber)","mantissa":ray_sum,"group_id":self.gid], success: { (value, json) in
+            NetworkRequest.requestMethod(.post, URLString: url_sendRayRed, parameters: ["amount":Float(self.tfMoney.text!) ?? 0,"blessing":tipText,"pay_pass":passwordStr ?? "","type":self.redType,"number":"\(rayNumber)","mantissa":ray_sum,"group_id":self.gid,"send_user_id":"\(JMSGUser.myInfo().uid)","send_nickname":JMSGUser.myInfo().username], success: { (value, json) in
                 
                 AlertClass.stop()
                     
