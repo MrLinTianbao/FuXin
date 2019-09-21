@@ -1251,17 +1251,25 @@ extension JCChatViewController: SAIToolboxInputViewDataSource, SAIToolboxInputVi
                     let data : NSData = try! JSONSerialization.data(withJSONObject: dic, options: []) as NSData
                     let jsonString = NSString(data: data as Data, encoding: String.Encoding.utf8.rawValue)! as String
                     
+                    let content = JMSGTextContent(text: jsonString)
+                    content.addStringExtra("success", forKey: "sendSate")
+                    content.addStringExtra("0", forKey: "msgStatus")
+                    
+                    let msg = self?.conversation.createMessage(with: content)
+                    
+                    content.addStringExtra(msg!.msgId, forKey: "msgId")
+                    
 //                    AsyncSocket.share.sendMessage(message: jsonString)
 //                    self?.send(forText: NSAttributedString.init(string: jsonString))
 
-//                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
-//                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
+                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
 //
                         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
                             self?.chatView.scrollToLast(animated: false)
                         }
 //
-//                    }
+                    }
                 }
                 
                 

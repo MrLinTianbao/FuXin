@@ -39,12 +39,12 @@ extension UIApplication {
 
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate,CLLocationManagerDelegate {
 
     
     var window: UIWindow?
     
-    
+    var manager : CLLocationManager!
     /*================================= 腾讯短视频AppKey===============================================*/
 //    let kTXLiteAVlicenceURL:String = "http://license.vod2.myqcloud.com/license/v1/fe3a56e1e3236e7fa07b6105bb4ce64d/TXUgcSDK.licence"
     let kTXLiteAVlicenceURL:String = "http://ugc-licence-test-1252463788.file.myqcloud.com/RDM_Enterprise.licence" //腾讯
@@ -81,7 +81,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             UITableView.appearance().estimatedSectionHeaderHeight = 0
         }
         
-        keepRunBackground()
+        // im server连接
+        AsyncSocket.share.startConnect()
+        
+        rjxContinuedLocationManager()
         
         //腾讯bugly
         Bugly.start(withAppId: "888338bc01")
@@ -154,9 +157,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         audioPlayer.numberOfLoops = -1
         audioPlayer.play()
         
-//        let timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(getCurrentTime), userInfo: nil, repeats: true)
-//        //添加至子线程
-//        RunLoop.main.add(timer, forMode: .common)
+        
     }
     
     //MARK: 获取当前时间
@@ -169,12 +170,60 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         MyLog(dateTime)
     }
     
+    //MARK: 应用进入后台执行定位 保证进程不被系统kill
+    fileprivate func rjxContinuedLocationManager(){
+        
+        manager = CLLocationManager()
+        //实时更新定位位置
+        manager.distanceFilter = kCLDistanceFilterNone
+        //定位精确度
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        
+        //该模式是抵抗程序在后台被杀，申明不能够被暂停
+        manager.pausesLocationUpdatesAutomatically = false
+        
+        manager.requestAlwaysAuthorization()
+        manager.allowsBackgroundLocationUpdates = true
+        manager.delegate = self
+        manager.startUpdatingLocation() //开始定位
+        manager.startUpdatingLocation() //获取朝向
+        
+//        let timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(getCurrentTime), userInfo: nil, repeats: true)
+//        //添加至子线程
+//        RunLoop.main.add(timer, forMode: .common)
+    }
+    
+    //MARK: 当你的程序将要被挂起，会调用改方法
+    func applicationWillResignActive(_ application: UIApplication) {
+        
+        /** 应用进入后台执行定位 保证进程不被系统kill */
+        UIApplication.shared.beginReceivingRemoteControlEvents()
+        self.manager.startUpdatingLocation()
+    }
+    
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         JMessage.registerDeviceToken(deviceToken)
     }
 
+    //MARK: 应用进入后台执行定位 保证进程不被系统kill
     func applicationDidEnterBackground(_ application: UIApplication) {
         resetBadge(application)
+        
+        let share = UIApplication.shared
+        var bgTask : UIBackgroundTaskIdentifier!
+        
+        bgTask = share.beginBackgroundTask(expirationHandler: {
+            
+            //主线程刷新UI
+            DispatchQueue.main.async(execute: {
+                if bgTask != UIBackgroundTaskIdentifier.invalid {
+                    bgTask = UIBackgroundTaskIdentifier.invalid
+                }
+            })
+        })
+        
+        self.manager.startUpdatingLocation()
+        
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {

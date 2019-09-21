@@ -34,6 +34,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     //MARK: 发送心跳包
     @objc fileprivate func sendText() {
         
+        
+        
         let dict = ["type":"ping"]
         let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
         let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
@@ -65,7 +67,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     internal func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) -> Void {
         //print("connect success")
         
-        self.timer = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
+        self.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
         //添加至子线程
         RunLoop.main.add(self.timer, forMode: .common)
         
@@ -111,13 +113,6 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 if !client_id.isEmpty { // 存储客户端ID
                     UserDefaults.standard.set(client_id, forKey: "client_id")
                     
-                    NetworkRequest.requestMethod(.post, URLString: url_bindIM, parameters: ["client_id":client_id,"method":"PUT"], success: { (value, json) in
-                        
-                        
-                    }) {
-                        
-                        
-                    }
                 }
                
             case "hb": // 红包消息事件
@@ -144,6 +139,10 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                             if let username = hb_infor["send_username"] as? String {
                                                 
                                                 hb_infor["send_user_id"] = username
+                                                
+                                                if username == JMSGUser.myInfo().username {
+                                                    return
+                                                }
                                             }
                                             
                                             

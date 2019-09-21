@@ -14,8 +14,14 @@ class JCMainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // im server连接
-        AsyncSocket.share.startConnect()
+        
+        NetworkRequest.requestMethod(.post, URLString: url_bindIM, parameters: ["client_id":UserDefaults.standard.string(forKey: "client_id") ?? "","method":"PUT"], success: { (value, json) in
+            
+            
+        }) {
+            
+            
+        }
         
         setupChildControllers()
         
