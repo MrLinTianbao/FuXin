@@ -117,6 +117,15 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                
             case "hb": // 红包消息事件
                 
+                let replyDic = ["type":"message", "msg_type":"reply","server_message_id":json?["server_message_id"] as! String,"receipt_time":getCurrentTime().getTimestamp(),"token":CacheClass.stringForEnumKey(.token) ?? ""] as [String : Any]
+                let replyData : NSData = try! JSONSerialization.data(withJSONObject: replyDic, options: []) as NSData
+                let replyJson = NSString(data: replyData as Data, encoding: String.Encoding.utf8.rawValue)! as String
+                AsyncSocket.share.sendMessage(message: replyJson)
+                
+                if "\(json?["is_resend"] ?? "0")" == "1"  { //是否是重发消息
+
+                    return
+                }
                 
                 
                 if var hb_infor = json?["hb_infor"] as? [String:Any] {
@@ -159,7 +168,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                             let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
                                             
                                             let conversation = JMSGConversation.groupConversation(withGroupId: "\(group_id)")
-                                            
+                                    
+                                          
                                             let content = JMSGTextContent(text: jsonString)
                                             content.addStringExtra("success", forKey: "sendSate")
                                             content.addStringExtra("0", forKey: "msgStatus")
