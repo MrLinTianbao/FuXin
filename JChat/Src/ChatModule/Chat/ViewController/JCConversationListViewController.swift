@@ -20,6 +20,11 @@ class JCConversationListViewController: CTViewController {
         getCustomService()
         _init()
         
+        NotificationCenter.default.addObserver(self, selector: #selector(getUnReadCount), name: .unReadCount, object: nil)
+        
+    }
+    
+    @objc fileprivate func getUnReadCount() {
         
         
         
@@ -175,10 +180,17 @@ class JCConversationListViewController: CTViewController {
     
     func _updateBadge() {
         let count = datas.unreadCount
+//        if count > 99 {
+//            navigationController?.tabBarItem.badgeValue = "99+"
+//
+//        } else {
+//            navigationController?.tabBarItem.badgeValue = count == 0 ? nil : "\(count)"
+//        }
+        
         if count > 99 {
-            navigationController?.tabBarItem.badgeValue = "99+"
+            self.rt_navigationController.tabBarItem.badgeValue = "99+"
         } else {
-            navigationController?.tabBarItem.badgeValue = count == 0 ? nil : "\(count)"
+            self.rt_navigationController.tabBarItem.badgeValue = count == 0 ? nil : "\(count)"
         }
     }
     

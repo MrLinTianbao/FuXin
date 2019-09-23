@@ -15,5 +15,7 @@ extension Notification.Name {
     static public let wechat_login = Notification.Name(rawValue: "wechat_login")
     //聊天页面滑动至底部
     static public let chatScrollToLast = Notification.Name(rawValue: "scrollToLast")
+    //未读消息数
+    static public let unReadCount = Notification.Name(rawValue: "unReadCount")
     
 }

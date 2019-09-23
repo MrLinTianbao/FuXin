@@ -67,6 +67,7 @@ extension ExJMessage where Base: JMSGConversation {
 
 extension Array where Element == JMSGConversation {
     var unreadCount: Int {
+        
         var count = 0
         for item in self {
             if let group = item.target as? JMSGGroup {
@@ -82,7 +83,12 @@ extension Array where Element == JMSGConversation {
             }
             count += item.unreadCount?.intValue ?? 0
         }
+        
+        
+        
         return count
     }
+    
+    
 }
 

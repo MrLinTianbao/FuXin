@@ -67,7 +67,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     internal func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) -> Void {
         //print("connect success")
         
-        self.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
+        self.timer = Timer.scheduledTimer(timeInterval: 55, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
         //添加至子线程
         RunLoop.main.add(self.timer, forMode: .common)
         
@@ -91,14 +91,18 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         // 1、获取客户端发来的数据，把 NSData 转 NSString
         let readClientDataString: NSString? = NSString(data: data as Data, encoding: String.Encoding.utf8.rawValue)
         
+        
+        
         // 打印服务端发来的消息
         print(readClientDataString ?? "")
         
 //        AlertClass.showText(_text: readClientDataString! as String)
         
+        if readClientDataString == nil {
+            return
+        }
         
-        
-        let jsonArr = (readClientDataString! as String).components(separatedBy: "\n")
+        let jsonArr = ((readClientDataString ?? "") as String).components(separatedBy: "\n")
 
         var jsonArr2 = [String]()
 
@@ -137,6 +141,22 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
             // Data 转 JSON对象
             let json = try? JSONSerialization.jsonObject(with: data, options:.allowFragments) as! [String: Any]
             self.getMessage(json: json)
+            
+            if (readClientDataString?.contains("###@@@红包###@@@"))! && (readClientDataString?.contains("message"))! {
+                
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
+                    
+                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
+                    
+                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+                        
+                        NotificationCenter.default.post(name: .chatScrollToLast, object: nil)
+                    }
+                    
+                    
+                }
+
+            }
         }
         
         
@@ -211,7 +231,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 let replyDic = ["type":"message", "msg_type":"reply","server_message_id":json?["server_message_id"] as! String,"receipt_time":getCurrentTime().getTimestamp(),"token":(json?["token"] as? String ?? ""),"uid":CacheClass.stringForEnumKey(.mid) ?? ""] as [String : Any]
                 let replyData : NSData = try! JSONSerialization.data(withJSONObject: replyDic, options: []) as NSData
                 let replyJson = NSString(data: replyData as Data, encoding: String.Encoding.utf8.rawValue)! as String
-                AsyncSocket.share.sendMessage(message: replyJson)
+                AsyncSocket.share.sendMessage(message: replyJson + "\n")
                 
                 if "\(json?["is_resend"] ?? "0")" == "1"  { //是否是重发消息
                     
@@ -285,15 +305,19 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                 }
                                             }
                                             
-                                            
+                                            NotificationCenter.default.post(name: .unReadCount, object: nil)
                                             
                                             let content = JMSGTextContent(text: jsonString)
                                             content.addStringExtra("success", forKey: "sendSate")
                                             content.addStringExtra("0", forKey: "msgStatus")
                                             
                                             let msg = conversation?.createMessage(with: content)
+//                                            conversation?.unreadCount += 1
                                             
-                                            content.addStringExtra(msg!.msgId, forKey: "msgId")
+                                            if let msgId = msg?.msgId {
+                                                content.addStringExtra(msgId, forKey: "msgId")
+                                            }
+                                            
                                             
                                             
                                             

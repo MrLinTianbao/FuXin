@@ -92,7 +92,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate,CLLocationManagerDelegate 
         WXApi.registerApp(weChatAppid)
         
         // im server连接
-        AsyncSocket.share.startConnect()
+//        AsyncSocket.share.startConnect()
         
 
         JMessage.setupJMessage(launchOptions, appKey: JMAPPKEY, channel: nil, apsForProduction: true, category: nil, messageRoaming: false)
