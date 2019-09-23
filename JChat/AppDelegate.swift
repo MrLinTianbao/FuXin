@@ -81,8 +81,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate,CLLocationManagerDelegate 
             UITableView.appearance().estimatedSectionHeaderHeight = 0
         }
         
-        // im server连接
-        AsyncSocket.share.startConnect()
+        
         
         rjxContinuedLocationManager()
         

@@ -210,14 +210,14 @@ class SignInViewController: STLVideoViewController {
             MBProgressHUD_JChat.hide(forView: self.view, animated: true)
             
             if json["status"].stringValue == "SUCCESS" {
-                let client_id = UserDefaults.standard.value(forKey: "client_id")
-                if (client_id != nil) {
-                    NetworkRequest.requestMethod(.post, URLString: url_bindIM, parameters: ["client_id":client_id ?? "", "method":"put"], success: { (bindValue, bindJson) in
-                        
-                        print("bindJson", bindJson)
-                        
-                    }){}
-                }
+//                let client_id = UserDefaults.standard.value(forKey: "client_id")
+//                if (client_id != nil) {
+//                    NetworkRequest.requestMethod(.post, URLString: url_bindIM, parameters: ["client_id":client_id ?? "", "method":"put"], success: { (bindValue, bindJson) in
+//
+//                        print("bindJson", bindJson)
+//
+//                    }){}
+//                }
                 
                 
                 getUserNews(success: { (json) in
