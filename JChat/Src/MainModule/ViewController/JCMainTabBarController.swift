@@ -15,6 +15,7 @@ class JCMainTabBarController: UITabBarController {
         super.viewDidLoad()
         
         // im server连接
+        AsyncSocket.share.isLogout = false
         AsyncSocket.share.startConnect()
         
         

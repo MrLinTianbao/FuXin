@@ -68,25 +68,36 @@ extension ExJMessage where Base: JMSGConversation {
 extension Array where Element == JMSGConversation {
     var unreadCount: Int {
         
-        var count = 0
-        for item in self {
-            if let group = item.target as? JMSGGroup {
-                // TODO: isNoDisturb 这个接口存在性能问题，如果大量离线会卡死
-                if group.isNoDisturb {
-                    continue
+        
+            var count = 0
+            for item in self {
+                if let group = item.target as? JMSGGroup {
+                    // TODO: isNoDisturb 这个接口存在性能问题，如果大量离线会卡死
+                    if group.isNoDisturb {
+                        continue
+                    }
+                    
+                    //                let msg = JMSGConversation.groupConversation(withGroupId: group.gid)?.latestMessage
+                    
+                    
+                    
+                    
                 }
-            }
-            if let user = item.target as? JMSGUser {
-                if user.isNoDisturb {
-                    continue
+                if let user = item.target as? JMSGUser {
+                    if user.isNoDisturb {
+                        continue
+                    }
                 }
+                count += item.unreadCount?.intValue ?? 0
             }
-            count += item.unreadCount?.intValue ?? 0
-        }
+            
+            
+            
+            return count
         
         
         
-        return count
+        
     }
     
     

@@ -8,6 +8,7 @@
 
 import UIKit
 import JMessage
+import SwiftyJSON
 
 class JCConversationListViewController: CTViewController {
     
@@ -20,13 +21,42 @@ class JCConversationListViewController: CTViewController {
         getCustomService()
         _init()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(getUnReadCount), name: .unReadCount, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(getUnReadCount(sender:)), name: .unReadCount, object: nil)
         
     }
     
-    @objc fileprivate func getUnReadCount() {
+    @objc fileprivate func getUnReadCount(sender:Notification) {
         
+        _getConversations()
         
+//        let json = JSON.init(sender.userInfo?["data"] ?? [String:Any]())
+//
+//        if let dic = json.dictionaryObject {
+//
+//            if let hb_infor = dic["hb_infor"] as? [String:Any] {
+//                if let group_id = hb_infor["group_id"] as? String {
+//
+//                    let conversation = JMSGConversation.groupConversation(withGroupId: "\(group_id)")
+//
+//                    let dataString : NSData = try! JSONSerialization.data(withJSONObject: dic, options: []) as NSData
+//                    let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
+//
+//                    let content = JMSGTextContent(text: jsonString)
+//                    content.addStringExtra("success", forKey: "sendSate")
+//                    content.addStringExtra("0", forKey: "msgStatus")
+//
+//                    let msg = conversation?.createMessage(with: content)
+//
+//
+//                    if let msgId = msg?.msgId {
+//                        content.addStringExtra(msgId, forKey: "msgId")
+//                    }
+//
+//                    onReceive(msg, error: nil)
+//
+//                }
+//            }
+//        }
         
     }
     

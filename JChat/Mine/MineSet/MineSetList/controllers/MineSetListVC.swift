@@ -88,6 +88,9 @@ class MineSetListVC: CTViewController {
                 let appDelegate = UIApplication.shared.delegate
                 let window = appDelegate?.window!
                 window?.rootViewController = JCNavigationController(rootViewController: SignInViewController())
+                
+                AsyncSocket.share.isLogout = true
+                AsyncSocket.share.stopConnect() //断开长链接
             })
         }
         

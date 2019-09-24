@@ -17,6 +17,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     
     static let share = AsyncSocket()
     
+    var isLogout = false //是否是退出登录
+    
     fileprivate var timer : Timer!
     
     override init() {
@@ -58,7 +60,11 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     //MARK: 连接失败
     func socketDidDisconnect(_ sock: GCDAsyncSocket, withError err: Error?) {
         
-        startConnect()
+        if !isLogout {
+            startConnect()
+        }
+        
+        
     }
     
     /**
@@ -67,7 +73,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     internal func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) -> Void {
         //print("connect success")
         
-        self.timer = Timer.scheduledTimer(timeInterval: 55, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
+        self.timer = Timer.scheduledTimer(timeInterval: 30, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
         //添加至子线程
         RunLoop.main.add(self.timer, forMode: .common)
         
@@ -111,6 +117,27 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 jsonArr2.append(str)
             }
         }
+        
+        //根据时间排序
+//        jsonArr2.sort { (a1, a2) -> Bool in
+//
+//            let data1 = a1.data(using: .utf8)
+//            let data2 = a2.data(using: .utf8)
+//
+//            let json1 = try? JSONSerialization.jsonObject(with: data1!, options:.allowFragments) as! [String: Any]
+//            let json2 = try? JSONSerialization.jsonObject(with: data2!, options:.allowFragments) as! [String: Any]
+//
+//            if let hb_infor = json1?["hb_infor"] as? [String:Any],let hb_infor2 = json2?["hb_infor"] as? [String:Any] {
+//
+//                if let time1 = hb_infor["hb_create_time"] as? String,let time2 = hb_infor2["hb_create_time"] as? String {
+//
+//                    return time1 < time2
+//                }
+//            }
+//
+//            return a1 < a2
+//
+//        }
 
         if (readClientDataString?.contains("###@@@红包###@@@"))! && (readClientDataString?.contains("message"))! && jsonArr2.count > 1 {
 
@@ -305,20 +332,20 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                 }
                                             }
                                             
-                                            NotificationCenter.default.post(name: .unReadCount, object: nil)
+//                                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
                                             
                                             let content = JMSGTextContent(text: jsonString)
                                             content.addStringExtra("success", forKey: "sendSate")
                                             content.addStringExtra("0", forKey: "msgStatus")
-                                            
+
                                             let msg = conversation?.createMessage(with: content)
-//                                            conversation?.unreadCount += 1
-                                            
+
+                                            conversation?.unreadCount = NSNumber.init(value: ((conversation?.unreadCount?.intValue) ?? 0) + 1 )
                                             if let msgId = msg?.msgId {
                                                 content.addStringExtra(msgId, forKey: "msgId")
                                             }
-                                            
-                                            
+//
+                                            NotificationCenter.default.post(name: .unReadCount, object: nil, userInfo: ["data":dict!])
                                             
                                             
                                         }
