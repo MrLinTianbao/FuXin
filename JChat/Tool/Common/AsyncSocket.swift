@@ -42,7 +42,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
         let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
 
-        AsyncSocket.share.sendMessage(message: jsonString + "\n")
+//        AsyncSocket.share.sendMessage(message: jsonString + "\n")
         
         
  
@@ -73,7 +73,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     internal func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) -> Void {
         //print("connect success")
         
-        self.timer = Timer.scheduledTimer(timeInterval: 30, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
+        self.timer = Timer.scheduledTimer(timeInterval: 20, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
         //添加至子线程
         RunLoop.main.add(self.timer, forMode: .common)
         
@@ -247,10 +247,13 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 
                 NetworkRequest.requestMethod(.post, URLString: url_bindIM, parameters: ["client_id":client_id,"method":"PUT"], success: { (value, json) in
                     
+                    if json["status"].stringValue != "SUCCESS" {
+                        AsyncSocket.share.stopConnect()
+                    }
                     
                 }) {
                     
-                    
+                    AsyncSocket.share.stopConnect()
                 }
                 
             case "hb": // 红包消息事件
@@ -260,10 +263,10 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 let replyJson = NSString(data: replyData as Data, encoding: String.Encoding.utf8.rawValue)! as String
                 AsyncSocket.share.sendMessage(message: replyJson + "\n")
                 
-                if "\(json?["is_resend"] ?? "0")" == "1"  { //是否是重发消息
-                    
-                    return
-                }
+//                if "\(json?["is_resend"] ?? "0")" == "0"  { //是否是重发消息
+//
+//                    return
+//                }
                 
                 
                 if var hb_infor = json?["hb_infor"] as? [String:Any] {
@@ -307,45 +310,47 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                             
                                             let conversation = JMSGConversation.groupConversation(withGroupId: "\(group_id)")
                                             
-                                            //获取列表消息
-                                            let msgs = conversation?.messageArrayFromNewest(withOffset: nil, limit: nil) ?? [JMSGMessage]()
-                                            
-                                            for msg in msgs {
+                                            if conversation == nil {
                                                 
-                                                if msg.contentType == .text {
-                                                    let content = msg.content as! JMSGTextContent
-                                                    let jsonData:Data = content.text.data(using: .utf8)!
-                                                    let dic = try? JSONSerialization.jsonObject(with: jsonData, options: .mutableContainers)
+                                                JMSGConversation.createGroupConversation(withGroupId: "\(group_id)", completionHandler: { (result, error) in
                                                     
-                                                    if let dict2 = dic as? [String:Any] {
-                                                        if let hb_infor2 = dict2["hb_infor"] as? [String:Any] {
+                                                    let conv = JMSGConversation.groupConversation(withGroupId: "\(group_id)")
+                                                    self.createMessage(conversation: conv, jsonString: jsonString, dict: dict)
+                                                })
+                                            }else{
+                                                //获取列表消息
+                                                let msgs = conversation?.messageArrayFromNewest(withOffset: nil, limit: nil) ?? [JMSGMessage]()
+                                                
+                                                for msg in msgs {
+                                                    
+                                                    if msg.contentType == .text {
+                                                        let content = msg.content as! JMSGTextContent
+                                                        let jsonData:Data = content.text.data(using: .utf8)!
+                                                        let dic = try? JSONSerialization.jsonObject(with: jsonData, options: .mutableContainers)
                                                         
-                                                            if let hb_id = hb_infor2["hb_id"] as? String {
+                                                        if let dict2 = dic as? [String:Any] {
+                                                            if let hb_infor2 = dict2["hb_infor"] as? [String:Any] {
                                                                 
-                                                                if hb_id == hb_infor["hb_id"] as? String {
-                                                                    return
+                                                                if let hb_id = hb_infor2["hb_id"] as? String {
+                                                                    
+                                                                    if hb_id == hb_infor["hb_id"] as? String {
+                                                                        return
+                                                                    }
                                                                 }
+                                                                
                                                             }
-                                                            
                                                         }
                                                     }
                                                 }
+                                                
+                                                self.createMessage(conversation: conversation, jsonString: jsonString, dict: dict)
                                             }
                                             
-//                                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
                                             
-                                            let content = JMSGTextContent(text: jsonString)
-                                            content.addStringExtra("success", forKey: "sendSate")
-                                            content.addStringExtra("0", forKey: "msgStatus")
-
-                                            let msg = conversation?.createMessage(with: content)
-
-                                            conversation?.unreadCount = NSNumber.init(value: ((conversation?.unreadCount?.intValue) ?? 0) + 1 )
-                                            if let msgId = msg?.msgId {
-                                                content.addStringExtra(msgId, forKey: "msgId")
-                                            }
-//
-                                            NotificationCenter.default.post(name: .unReadCount, object: nil, userInfo: ["data":dict!])
+                                            
+                                            
+                                            
+                                            
                                             
                                             
                                         }
@@ -362,5 +367,27 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 break;
             }
         }
+    }
+    
+    //MARK: 创建消息
+    fileprivate func createMessage(conversation:JMSGConversation?,jsonString:String,dict:[String:Any]?) {
+        
+        
+        
+        let content = JMSGTextContent(text: jsonString)
+        content.addStringExtra("success", forKey: "sendSate")
+        content.addStringExtra("0", forKey: "msgStatus")
+        
+        let msg = conversation?.createMessage(with: content)
+        
+        conversation?.unreadCount = NSNumber.init(value: ((conversation?.unreadCount?.intValue) ?? 0) + 1 )
+        if let msgId = msg?.msgId {
+            content.addStringExtra(msgId, forKey: "msgId")
+        }
+        
+        
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
+        //
+//        NotificationCenter.default.post(name: .unReadCount, object: nil, userInfo: ["data":dict!])
     }
 }
