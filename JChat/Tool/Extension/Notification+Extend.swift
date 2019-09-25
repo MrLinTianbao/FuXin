@@ -17,5 +17,7 @@ extension Notification.Name {
     static public let chatScrollToLast = Notification.Name(rawValue: "scrollToLast")
     //未读消息数
     static public let unReadCount = Notification.Name(rawValue: "unReadCount")
+    //清空未读消息数
+    static public let clearUnReadCount = Notification.Name(rawValue: "clearUnReadCount")
     
 }

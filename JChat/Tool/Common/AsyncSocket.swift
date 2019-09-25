@@ -272,6 +272,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 if var hb_infor = json?["hb_infor"] as? [String:Any] {
                     if let group_id = hb_infor["group_id"] as? String {
                         
+                        
+                        
                         JMSGGroup.myGroupArray { (result, error) in
                             if error == nil {
                                 
@@ -378,15 +380,30 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         content.addStringExtra("success", forKey: "sendSate")
         content.addStringExtra("0", forKey: "msgStatus")
         
+        
+        
         let msg = conversation?.createMessage(with: content)
         
+        if let hb_infor = dict?["hb_infor"] as? [String:Any] {
+            if let hb_create_time = hb_infor["hb_create_time"] as? String {
+                msg?.timestamp = NSNumber.init(value: hb_create_time.getTimestamp())
+            }
+        }
+        
         conversation?.unreadCount = NSNumber.init(value: ((conversation?.unreadCount?.intValue) ?? 0) + 1 )
+        
+        //保存未读消息数
+        CacheClass.setObject("\((conversation?.unreadCount?.intValue) ?? 0)", forEnumKey: JMSGUser.myInfo().username + (conversation?.target as! JMSGGroup).gid)
+        
         if let msgId = msg?.msgId {
             content.addStringExtra(msgId, forKey: "msgId")
         }
         
+        NotificationCenter.default.post(name:.clearUnReadCount, object: nil, userInfo: ["data":(conversation?.target as! JMSGGroup).gid])
         
         NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
+        
+        
         //
 //        NotificationCenter.default.post(name: .unReadCount, object: nil, userInfo: ["data":dict!])
     }

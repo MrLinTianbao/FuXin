@@ -163,6 +163,12 @@ extension JCGroupListViewController: UITableViewDelegate, UITableViewDataSource 
         JMSGConversation.createGroupConversation(withGroupId: group.gid) { (result, error) in
             if let conv = result as? JMSGConversation {
                 let vc = JCChatViewController(conversation: conv)
+                
+                if let target = conv.target as? JMSGGroup {
+                    //保存未读消息数
+                    CacheClass.setObject("0", forEnumKey: JMSGUser.myInfo().username + target.gid)
+                }
+                
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
                 self.navigationController?.pushViewController(vc, animated: true)
             }

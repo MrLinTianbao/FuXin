@@ -45,6 +45,29 @@ class JCChatViewController: CTViewController {
         _init()
         
         NotificationCenter.default.addObserver(self, selector: #selector(scrollToLast), name: .chatScrollToLast, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(clearUnReadCount(sender:)), name: .clearUnReadCount, object: nil)
+        
+        
+    }
+    
+    //MARK: 清空未读消息
+    @objc fileprivate func clearUnReadCount(sender:Notification) {
+        
+            let json = JSON.init(sender.userInfo!)
+        
+            if let dic = json.dictionaryObject {
+                if let gid = dic["data"] as? String {
+                    
+                    if let target = conversation.target as? JMSGGroup {
+                        if gid == target.gid {
+                            conversation.clearUnreadCount()
+                            //保存未读消息数
+                            CacheClass.setObject("\((conversation.unreadCount?.intValue) ?? 0))", forEnumKey: JMSGUser.myInfo().username + gid)
+                        }
+                    }
+                }
+            }
+        
     }
     
     //MARK: 滑动至底部

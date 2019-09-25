@@ -231,6 +231,23 @@ class JCConversationListViewController: CTViewController {
             }
             self.datas = conversatios as! [JMSGConversation]
             
+            for i in 0..<self.datas.count {
+                
+                let conv = self.datas[i]
+                
+                if let target = conv.target as? JMSGGroup {
+                    if let unreadCount = UserDefaults.standard.string(forKey: JMSGUser.myInfo().username + target.gid) {
+                        
+                        conv.unreadCount = NSNumber.init(value: Int(unreadCount) ?? 0)
+                        
+                        self.datas[i] = conv
+                    }
+                    
+                }
+                
+                
+            }
+            
             self.datas = self.sortConverstaions(self.datas)
             self.tableview.reloadData()
             if self.datas.count == 0 {
@@ -446,10 +463,18 @@ extension JCConversationListViewController: UITableViewDelegate, UITableViewData
         }
         let conversation = datas[showNetworkTips ? indexPath.row - 1 : indexPath.row]
         conversation.clearUnreadCount()
+        
+        //如果是群会话
+        if let target = conversation.target as? JMSGGroup {
+            //保存未读消息数
+            CacheClass.setObject("0", forEnumKey: JMSGUser.myInfo().username + target.gid)
+        }
+        
         guard let cell = tableView.cellForRow(at: indexPath) as? JCConversationCell else {
             return
         }
         cell.bindConversation(conversation)
+        
         let vc = JCChatViewController(conversation: conversation)
         navigationController?.pushViewController(vc, animated: true)
     }
@@ -484,6 +509,11 @@ extension JCConversationListViewController: UITableViewDelegate, UITableViewData
                 return
             }
             JMSGConversation.deleteGroupConversation(withGroupId: group.gid)
+            
+            if let taget = conversation.target as? JMSGGroup {
+                CacheClass.setObject("0", forEnumKey: JMSGUser.myInfo().username + taget.gid)
+            }
+            
         } else {
             guard let user = tager as? JMSGUser else {
                 return
@@ -497,6 +527,8 @@ extension JCConversationListViewController: UITableViewDelegate, UITableViewData
             emptyView.isHidden = true
         }
         tableview.reloadData()
+        
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
     }
     
 }
