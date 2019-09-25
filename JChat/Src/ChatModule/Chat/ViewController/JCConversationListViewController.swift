@@ -217,6 +217,10 @@ class JCConversationListViewController: CTViewController {
 //            navigationController?.tabBarItem.badgeValue = count == 0 ? nil : "\(count)"
 //        }
         
+        if self.rt_navigationController == nil {
+            return
+        }
+        
         if count > 99 {
             self.rt_navigationController.tabBarItem.badgeValue = "99+"
         } else {
@@ -247,6 +251,31 @@ class JCConversationListViewController: CTViewController {
                 
                 
             }
+            
+//            var convs = [JMSGConversation]()
+//
+//            for conv in self.datas {
+//
+////                var isFlag = false //判断用户是否是群成员
+//
+//                if let group = conv.target as? JMSGGroup {
+//
+//                    let users = group.memberArray()
+//
+//                    for user in users {
+//
+//                        //判断用户是否是群成员
+//                        if user.username == JMSGUser.myInfo().username {
+//
+//                            convs.append(conv)
+//                        }
+//                    }
+//
+//
+//                }
+//            }
+//
+//            self.datas = convs
             
             self.datas = self.sortConverstaions(self.datas)
             self.tableview.reloadData()

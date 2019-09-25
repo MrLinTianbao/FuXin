@@ -42,7 +42,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict, options: []) as NSData
         let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
 
-//        AsyncSocket.share.sendMessage(message: jsonString + "\n")
+        AsyncSocket.share.sendMessage(message: jsonString + "\n")
         
         
  
@@ -272,17 +272,18 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 if var hb_infor = json?["hb_infor"] as? [String:Any] {
                     if let group_id = hb_infor["group_id"] as? String {
                         
+                        let conversation = JMSGConversation.groupConversation(withGroupId: "\(group_id)")
                         
                         
-                        JMSGGroup.myGroupArray { (result, error) in
-                            if error == nil {
-                                
-                                if let gids = result as? [NSNumber] {
+//                        JMSGGroup.myGroupArray { (result, error) in
+//                            if error == nil {
+//
+//                                if let gids = result as? [NSNumber] {
+                        
+//                                    for gid in gids {
+//
+//                                        if "\(gid)" == "\(group_id)" {
                                     
-                                    for gid in gids {
-                                        
-                                        if "\(gid)" == "\(group_id)" {
-                                            
                                             if let send_user_id = hb_infor["send_user_id"] as? String {
                                                 
                                                 hb_infor["userId"] = send_user_id
@@ -310,14 +311,38 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                             let dataString : NSData = try! JSONSerialization.data(withJSONObject: dict!, options: []) as NSData
                                             let jsonString = NSString(data: dataString as Data, encoding: String.Encoding.utf8.rawValue)! as String
                                             
-                                            let conversation = JMSGConversation.groupConversation(withGroupId: "\(group_id)")
+                                            
                                             
                                             if conversation == nil {
+                                                
                                                 
                                                 JMSGConversation.createGroupConversation(withGroupId: "\(group_id)", completionHandler: { (result, error) in
                                                     
                                                     let conv = JMSGConversation.groupConversation(withGroupId: "\(group_id)")
-                                                    self.createMessage(conversation: conv, jsonString: jsonString, dict: dict)
+                                                    
+                                                    if let group = conv?.target as? JMSGGroup {
+                                                       
+                                                        let users = group.memberArray()
+                                                        
+                                                        for user in users {
+                                                            
+                                                            //判断用户是否是群成员
+                                                            if user.username == JMSGUser.myInfo().username {
+                                                                self.createMessage(conversation: conv, jsonString: jsonString, dict: dict)
+                                                                
+                                                                return
+                                                            }
+                                                            
+                                                           
+                                                        }
+                                                        
+                                                        JMSGConversation.deleteGroupConversation(withGroupId: "\(group_id)")
+                                                    }
+                                                    
+
+                                                    
+                                                    
+                        
                                                 })
                                             }else{
                                                 //获取列表消息
@@ -355,11 +380,11 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                             
                                             
                                             
-                                        }
-                                    }
-                                }
-                            }
-                        }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
                     }
                 }
                 
@@ -373,6 +398,34 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     
     //MARK: 创建消息
     fileprivate func createMessage(conversation:JMSGConversation?,jsonString:String,dict:[String:Any]?) {
+        
+        if let type = dict?["type"] as? String {
+            
+            if type == "hb" {
+                
+                if let group = conversation?.target as? JMSGGroup {
+                    
+                    let users = group.memberArray()
+                    
+                    var isFlag = false //判断用户是否是群成员
+                    
+                    for user in users {
+                        
+                        
+                        if user.username == JMSGUser.myInfo().username {
+                            
+                            isFlag = true
+                            break
+                        }
+                    }
+                    
+                    if !isFlag {
+                        return
+                    }
+                }
+            }
+        }
+        
         
         
         
