@@ -73,7 +73,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     internal func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) -> Void {
         //print("connect success")
         
-        self.timer = Timer.scheduledTimer(timeInterval: 20, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
+        self.timer = Timer.scheduledTimer(timeInterval: 55, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
         //添加至子线程
         RunLoop.main.add(self.timer, forMode: .common)
         
@@ -272,7 +272,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 if var hb_infor = json?["hb_infor"] as? [String:Any] {
                     if let group_id = hb_infor["group_id"] as? String {
                         
-                        let conversation = JMSGConversation.groupConversation(withGroupId: "\(group_id)")
+                        let conversation =  JMSGConversation.groupConversation(withGroupId: "\(group_id)")
                         
                         
 //                        JMSGGroup.myGroupArray { (result, error) in

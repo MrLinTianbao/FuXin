@@ -461,6 +461,10 @@ extension AppDelegate: JMessageDelegate,JMSGGroupDelegate {
     }
     
     func _logout() {
+        
+        AsyncSocket.share.isLogout = true
+        AsyncSocket.share.stopConnect()
+        
         JCVerificationInfoDB.shareInstance.queue = nil
         UserDefaults.standard.removeObject(forKey: kCurrentUserName)
         let alertView = UIAlertView(title: "您的账号在其它设备上登录", message: "", delegate: self, cancelButtonTitle: "取消", otherButtonTitles: "重新登录")
@@ -498,6 +502,10 @@ extension AppDelegate: UIAlertViewDelegate {
                     UserDefaults.standard.set(username, forKey: kLastUserName)
                     UserDefaults.standard.set(username, forKey: kCurrentUserName)
                     UserDefaults.standard.set(password, forKey: kCurrentUserPassword)
+                    
+                    AsyncSocket.share.isLogout = false
+                    AsyncSocket.share.stopConnect()
+                    
                 } else {
                     self.pushToLoginView()
                     MBProgressHUD_JChat.show(text: "\(String.errorAlert(error! as NSError))", view: self.window?.rootViewController?.view, 2)
