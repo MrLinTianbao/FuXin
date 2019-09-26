@@ -504,7 +504,7 @@ extension AppDelegate: UIAlertViewDelegate {
                     UserDefaults.standard.set(password, forKey: kCurrentUserPassword)
                     
                     AsyncSocket.share.isLogout = false
-                    AsyncSocket.share.stopConnect()
+                    AsyncSocket.share.startConnect()
                     
                 } else {
                     self.pushToLoginView()

@@ -73,6 +73,11 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     internal func socket(_ sock: GCDAsyncSocket, didConnectToHost host: String, port: UInt16) -> Void {
         //print("connect success")
         
+        if self.timer != nil {
+            self.timer.invalidate()
+            self.timer = nil
+        }
+        
         self.timer = Timer.scheduledTimer(timeInterval: 55, target: self, selector: #selector(self.sendText), userInfo: nil, repeats: true)
         //添加至子线程
         RunLoop.main.add(self.timer, forMode: .common)
