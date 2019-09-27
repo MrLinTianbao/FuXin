@@ -21,6 +21,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     
     fileprivate var timer : Timer!
     
+    var sound : Double = 0 //时间间隔
+    
     override init() {
         super.init()
         
@@ -102,7 +104,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         // 1、获取客户端发来的数据，把 NSData 转 NSString
         let readClientDataString: NSString? = NSString(data: data as Data, encoding: String.Encoding.utf8.rawValue)
         
-        
+        AsyncSocket.share.sound += 0.1
         
         // 打印服务端发来的消息
 //        MyLog(readClientDataString ?? "")
@@ -122,27 +124,6 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 jsonArr2.append(str)
             }
         }
-        
-        //根据时间排序
-//        jsonArr2.sort { (a1, a2) -> Bool in
-//
-//            let data1 = a1.data(using: .utf8)
-//            let data2 = a2.data(using: .utf8)
-//
-//            let json1 = try? JSONSerialization.jsonObject(with: data1!, options:.allowFragments) as! [String: Any]
-//            let json2 = try? JSONSerialization.jsonObject(with: data2!, options:.allowFragments) as! [String: Any]
-//
-//            if let hb_infor = json1?["hb_infor"] as? [String:Any],let hb_infor2 = json2?["hb_infor"] as? [String:Any] {
-//
-//                if let time1 = hb_infor["hb_create_time"] as? String,let time2 = hb_infor2["hb_create_time"] as? String {
-//
-//                    return time1 < time2
-//                }
-//            }
-//
-//            return a1 < a2
-//
-//        }
 
         if (readClientDataString?.contains("###@@@红包###@@@"))! && (readClientDataString?.contains("message"))! && jsonArr2.count > 1 {
 
@@ -155,21 +136,25 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
 
             }
             
-            let strData2 = jsonArr2.first?.data(using: .utf8)
-            
-            let jsonStr2 = try? JSONSerialization.jsonObject(with: strData2!, options:.allowFragments) as! [String: Any]
-            
-            if var hb_infor = jsonStr2?["hb_infor"] as? [String:Any] {
-                if let group_id = hb_infor["group_id"] as? String {
-                    
-            
-                    NotificationCenter.default.post(name:.clearUnReadCount, object: nil, userInfo: ["data":group_id])
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + AsyncSocket.share.sound) {
+                let strData2 = jsonArr2.first?.data(using: .utf8)
+                
+                let jsonStr2 = try? JSONSerialization.jsonObject(with: strData2!, options:.allowFragments) as! [String: Any]
+                
+                if var hb_infor = jsonStr2?["hb_infor"] as? [String:Any] {
+                    if let group_id = hb_infor["group_id"] as? String {
+                        
+                        
+                        NotificationCenter.default.post(name:.clearUnReadCount, object: nil, userInfo: ["data":group_id])
+                    }
                 }
+                
+                
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
+                self.reloadMessage()
             }
-
             
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
-            reloadMessage()
+            
 
             
         }else{
@@ -185,6 +170,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                     return
                 }
                 
+                
+                    
                 if var hb_infor = json?["hb_infor"] as? [String:Any] {
                     if let group_id = hb_infor["group_id"] as? String {
                         
@@ -193,7 +180,10 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 }
                 
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
-                reloadMessage()
+                self.reloadMessage()
+                
+                
+                
 
             }
         }

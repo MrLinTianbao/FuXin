@@ -23,6 +23,7 @@ class JCConversationListViewController: CTViewController {
         
         NotificationCenter.default.addObserver(self, selector: #selector(getUnReadCount(sender:)), name: .unReadCount, object: nil)
         
+        
     }
     
     @objc fileprivate func getUnReadCount(sender:Notification) {

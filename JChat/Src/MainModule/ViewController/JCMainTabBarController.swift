@@ -20,6 +20,7 @@ class JCMainTabBarController: UITabBarController {
         
         
         
+        
         setupChildControllers()
         
         getUserNews()
