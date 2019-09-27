@@ -151,7 +151,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 
                 let jsonStr = try? JSONSerialization.jsonObject(with: strData!, options:.allowFragments) as! [String: Any]
                 
-                self.getMessage(json: jsonStr)
+                let _ = self.getMessage(json: jsonStr)
 
             }
             
@@ -172,9 +172,14 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
             
             // Data 转 JSON对象
             let json = try? JSONSerialization.jsonObject(with: data, options:.allowFragments) as! [String: Any]
-            self.getMessage(json: json)
+            
+            let isRepeat = self.getMessage(json: json) //是否是重复消息
             
             if (readClientDataString?.contains("###@@@红包###@@@"))! && (readClientDataString?.contains("message"))! {
+                
+                if isRepeat {
+                    return
+                }
                 
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
                     
@@ -232,7 +237,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     }
     
     //MARK: 处理消息
-    fileprivate func getMessage(json:[String:Any]?) {
+    fileprivate func getMessage(json:[String:Any]?) -> Bool { //是否是重复消息
         
         /**
          * 获取事件类型
@@ -263,7 +268,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 
             case "hb": // 红包消息事件
                 
-                let replyDic = ["type":"message", "msg_type":"reply","server_message_id":json?["server_message_id"] as! String,"receipt_time":getCurrentTime().getTimestamp(),"token":(json?["token"] as? String ?? ""),"uid":CacheClass.stringForEnumKey(.mid) ?? ""] as [String : Any]
+                let replyDic = ["type":"message", "msg_type":"reply","server_message_id":"\(json?["server_message_id"] ?? "")","receipt_time":getCurrentTime().getTimestamp(),"token":(json?["token"] as? String ?? ""),"uid":CacheClass.stringForEnumKey(.mid) ?? ""] as [String : Any]
                 let replyData : NSData = try! JSONSerialization.data(withJSONObject: replyDic, options: []) as NSData
                 let replyJson = NSString(data: replyData as Data, encoding: String.Encoding.utf8.rawValue)! as String
                 AsyncSocket.share.sendMessage(message: replyJson + "\n")
@@ -299,7 +304,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                 hb_infor["send_user_id"] = username
                                                 
                                                 if username == JMSGUser.myInfo().username {
-                                                    return
+                                                    return true
                                                 }
                                             }
                                             
@@ -335,6 +340,18 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                             if user.username == JMSGUser.myInfo().username {
                                                                 self.createMessage(conversation: conv, jsonString: jsonString, dict: dict)
                                                                 
+                                                                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
+                                                                    
+                                                                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
+                                                                    
+                                                                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+                                                                        
+                                                                        NotificationCenter.default.post(name: .chatScrollToLast, object: nil)
+                                                                    }
+                                                                    
+                                                                    
+                                                                }
+                                                                
                                                                 return
                                                             }
                                                             
@@ -349,6 +366,9 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                     
                         
                                                 })
+                                                
+                                                return true
+                                                
                                             }else{
                                                 //获取列表消息
                                                 let msgs = conversation?.messageArrayFromNewest(withOffset: nil, limit: nil) ?? [JMSGMessage]()
@@ -361,21 +381,22 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                         let dic = try? JSONSerialization.jsonObject(with: jsonData, options: .mutableContainers)
                                                         
                                                         if let dict2 = dic as? [String:Any] {
-                                                            if let hb_infor2 = dict2["hb_infor"] as? [String:Any] {
+
+                                                            
                                                                 
-                                                                if let hb_id = hb_infor2["hb_id"] as? String {
-                                                                    
-                                                                    if hb_id == hb_infor["hb_id"] as? String {
-                                                                        return
-                                                                    }
-                                                                }
-                                                                
+                                                                if "\(dict2["server_message_id"] ?? "")" == "\(json?["server_message_id"] ?? "")" {
+                                                                 
+                                                                    return true
                                                             }
+                                                                
+//
                                                         }
                                                     }
                                                 }
                                                 
                                                 self.createMessage(conversation: conversation, jsonString: jsonString, dict: dict)
+                                                
+                                                return false
                                             }
                                             
                                             
@@ -399,6 +420,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                 break;
             }
         }
+        
+        return true
     }
     
     //MARK: 创建消息
