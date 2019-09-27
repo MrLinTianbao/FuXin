@@ -24,6 +24,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     var sound : Double = 0 //时间间隔
     var sound2 : Double = 0 //聊天页面刷新时间间隔
     
+    var queue = DispatchQueue.init(label: "com.fuxin.thread") //全局队列
+    
     override init() {
         super.init()
         
@@ -105,12 +107,9 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         // 1、获取客户端发来的数据，把 NSData 转 NSString
         let readClientDataString: NSString? = NSString(data: data as Data, encoding: String.Encoding.utf8.rawValue)
         
-        AsyncSocket.share.sound += 0.1
-        AsyncSocket.share.sound2 += 1
-        
         
         // 打印服务端发来的消息
-//        MyLog(readClientDataString ?? "")
+        MyLog(readClientDataString ?? "")
         
 //        AlertClass.showText(_text: readClientDataString! as String)
         
@@ -118,93 +117,90 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
             return
         }
         
-        let jsonArr = ((readClientDataString ?? "") as String).components(separatedBy: "\n")
-
-        var jsonArr2 = [String]()
-
-        for str in jsonArr {
-            if str != "" {
-                jsonArr2.append(str)
-            }
-        }
-
-        if (readClientDataString?.contains("###@@@红包###@@@"))! && (readClientDataString?.contains("message"))! && jsonArr2.count > 1 {
+        AsyncSocket.share.sound += 1
+        
+        queue.async {[weak self] in //异步线程
             
+            let jsonArr = ((readClientDataString ?? "") as String).components(separatedBy: "\n")
             
-
-            for str in jsonArr2 {
-                let strData = str.data(using: .utf8)
-                
-                let jsonStr = try? JSONSerialization.jsonObject(with: strData!, options:.allowFragments) as! [String: Any]
-                
-                let _ = self.getMessage(json: jsonStr)
-
-            }
+            var jsonArr2 = [String]()
             
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + AsyncSocket.share.sound) {
-                let strData2 = jsonArr2.first?.data(using: .utf8)
-
-                let jsonStr2 = try? JSONSerialization.jsonObject(with: strData2!, options:.allowFragments) as! [String: Any]
-
-                if var hb_infor = jsonStr2?["hb_infor"] as? [String:Any] {
-                    if let group_id = hb_infor["group_id"] as? String {
-
-
-                        NotificationCenter.default.post(name:.clearUnReadCount, object: nil, userInfo: ["data":group_id])
-                    }
+            for str in jsonArr {
+                if str != "" {
+                    jsonArr2.append(str)
                 }
-
-
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
-                
-
             }
             
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + AsyncSocket.share.sound2) {
-
-                self.reloadMessage()
-            }
-            
-            
-
-            
-        }else{
-            
-            // Data 转 JSON对象
-            let json = try? JSONSerialization.jsonObject(with: data, options:.allowFragments) as! [String: Any]
-            
-            let isRepeat = self.getMessage(json: json) //是否是重复消息
-            
-            if (readClientDataString?.contains("###@@@红包###@@@"))! && (readClientDataString?.contains("message"))! {
-                
-                if isRepeat {
-                    return
-                }
+            if (readClientDataString?.contains("###@@@红包###@@@"))! && (readClientDataString?.contains("message"))! && jsonArr2.count > 1 {
                 
                 
+                
+                for str in jsonArr2 {
+                    let strData = str.data(using: .utf8)
                     
-                    if var hb_infor = json?["hb_infor"] as? [String:Any] {
+                    let jsonStr = try? JSONSerialization.jsonObject(with: strData!, options:.allowFragments) as! [String: Any]
+                    
+                    let _ = self?.getMessage(json: jsonStr)
+                    
+                }
+                
+                
+                let strData2 = jsonArr2.first?.data(using: .utf8)
+                
+                let jsonStr2 = try? JSONSerialization.jsonObject(with: strData2!, options:.allowFragments) as! [String: Any]
+                
+                DispatchQueue.main.async { //主线程刷新UI
+                    
+                    if var hb_infor = jsonStr2?["hb_infor"] as? [String:Any] {
                         if let group_id = hb_infor["group_id"] as? String {
-
+                            
+                            
                             NotificationCenter.default.post(name:.clearUnReadCount, object: nil, userInfo: ["data":group_id])
                         }
                     }
-
+                    
+                    
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
-                
-                
-                
-                
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + AsyncSocket.share.sound2) {
-                    self.reloadMessage()
+                    self?.reloadMessage()
                 }
                 
                 
                 
+            }else{
                 
-
+                // Data 转 JSON对象
+                let json = try? JSONSerialization.jsonObject(with: data, options:.allowFragments) as! [String: Any]
+                
+                let isRepeat = self?.getMessage(json: json) //是否是重复消息
+                
+                if (readClientDataString?.contains("###@@@红包###@@@"))! && (readClientDataString?.contains("message"))! {
+                    
+                    if isRepeat! {
+                        self?.clientSocket.readData(withTimeout: -1, tag: 0)
+                        return
+                    }
+                    
+                    DispatchQueue.main.async { //主线程刷新UI
+                        if var hb_infor = json?["hb_infor"] as? [String:Any] {
+                            if let group_id = hb_infor["group_id"] as? String {
+                                
+                                NotificationCenter.default.post(name:.clearUnReadCount, object: nil, userInfo: ["data":group_id])
+                            }
+                        }
+                        
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
+                        self?.reloadMessage()
+                    }
+                    
+                    
+                    
+                    
+                }
             }
+            
         }
+        
+        
         
         
         
