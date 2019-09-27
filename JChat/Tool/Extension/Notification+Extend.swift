@@ -19,5 +19,7 @@ extension Notification.Name {
     static public let unReadCount = Notification.Name(rawValue: "unReadCount")
     //清空未读消息数
     static public let clearUnReadCount = Notification.Name(rawValue: "clearUnReadCount")
+    //刷新列表
+    static public let reloadMessageList = Notification.Name(rawValue: "reloadMessageList")
     
 }

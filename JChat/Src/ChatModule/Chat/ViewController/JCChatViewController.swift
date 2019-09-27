@@ -46,8 +46,26 @@ class JCChatViewController: CTViewController {
         
         NotificationCenter.default.addObserver(self, selector: #selector(scrollToLast), name: .chatScrollToLast, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(clearUnReadCount(sender:)), name: .clearUnReadCount, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadMessageList(sender:)), name: .reloadMessageList, object: nil)
         
+    }
+    
+    //MARK: 刷新列表
+    @objc fileprivate func reloadMessageList(sender:Notification) {
         
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
+
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
+
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+
+                    NotificationCenter.default.post(name: .chatScrollToLast, object: nil)
+                }
+
+
+            }
+
+    
     }
     
     //MARK: 清空未读消息
@@ -859,6 +877,7 @@ class JCChatViewController: CTViewController {
     }
     
     @objc func _getGroupInfo() {
+        
         let vc = JCGroupSettingViewController()
         let group = conversation.target as! JMSGGroup
         vc.group = group

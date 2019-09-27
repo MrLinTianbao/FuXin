@@ -202,6 +202,7 @@ class JCConversationListViewController: CTViewController {
     }
     
     private func _setupNavigation() {
+        
         addButton.addTarget(self, action: #selector(_clickNavRightButton(_:)), for: .touchUpInside)
         addButton.setImage(UIImage.init(named: "addFri"), for: .normal)
         let item = UIBarButtonItem(customView: addButton)

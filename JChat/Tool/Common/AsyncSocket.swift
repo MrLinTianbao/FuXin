@@ -51,9 +51,9 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     func startConnect(){
         do {
             try clientSocket.connect(toHost: host, onPort: socketPort, withTimeout: -1)
-            print("IM Server 连接成功")
+            MyLog("IM Server 连接成功")
         } catch {
-            print("IM Server 连接失败")
+            MyLog("IM Server 连接失败")
         }
     }
     
@@ -105,7 +105,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         
         
         // 打印服务端发来的消息
-        print(readClientDataString ?? "")
+//        MyLog(readClientDataString ?? "")
         
 //        AlertClass.showText(_text: readClientDataString! as String)
         
@@ -155,17 +155,21 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
 
             }
             
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
-                
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
-                
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+            let strData2 = jsonArr2.first?.data(using: .utf8)
+            
+            let jsonStr2 = try? JSONSerialization.jsonObject(with: strData2!, options:.allowFragments) as! [String: Any]
+            
+            if var hb_infor = jsonStr2?["hb_infor"] as? [String:Any] {
+                if let group_id = hb_infor["group_id"] as? String {
                     
-                    NotificationCenter.default.post(name: .chatScrollToLast, object: nil)
+            
+                    NotificationCenter.default.post(name:.clearUnReadCount, object: nil, userInfo: ["data":group_id])
                 }
-                
-                
             }
+
+            
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
+            reloadMessage()
 
             
         }else{
@@ -181,17 +185,15 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                     return
                 }
                 
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
-                    
-                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
-                    
-                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
+                if var hb_infor = json?["hb_infor"] as? [String:Any] {
+                    if let group_id = hb_infor["group_id"] as? String {
                         
-                        NotificationCenter.default.post(name: .chatScrollToLast, object: nil)
+                        NotificationCenter.default.post(name:.clearUnReadCount, object: nil, userInfo: ["data":group_id])
                     }
-                    
-                    
                 }
+                
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
+                reloadMessage()
 
             }
         }
@@ -223,7 +225,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
      */
     func stopConnect() {
         clientSocket.disconnect()
-        print("断开连接 IM Server")
+        MyLog("断开连接 IM Server")
     }
     
     /**
@@ -283,17 +285,6 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                     if let group_id = hb_infor["group_id"] as? String {
                         
                         let conversation =  JMSGConversation.groupConversation(withGroupId: "\(group_id)")
-                        
-                        
-//                        JMSGGroup.myGroupArray { (result, error) in
-//                            if error == nil {
-//
-//                                if let gids = result as? [NSNumber] {
-                        
-//                                    for gid in gids {
-//
-//                                        if "\(gid)" == "\(group_id)" {
-                                    
                                             if let send_user_id = hb_infor["send_user_id"] as? String {
                                                 
                                                 hb_infor["userId"] = send_user_id
@@ -340,17 +331,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                             if user.username == JMSGUser.myInfo().username {
                                                                 self.createMessage(conversation: conv, jsonString: jsonString, dict: dict)
                                                                 
-                                                                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
-                                                                    
-                                                                    NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
-                                                                    
-                                                                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-                                                                        
-                                                                        NotificationCenter.default.post(name: .chatScrollToLast, object: nil)
-                                                                    }
-                                                                    
-                                                                    
-                                                                }
+                                                                self.reloadMessage()
                                                                 
                                                                 return
                                                             }
@@ -398,19 +379,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                 
                                                 return false
                                             }
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-                                            
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
+                        
+                        
                     }
                 }
                 
@@ -480,12 +450,16 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
             content.addStringExtra(msgId, forKey: "msgId")
         }
         
-        NotificationCenter.default.post(name:.clearUnReadCount, object: nil, userInfo: ["data":(conversation?.target as! JMSGGroup).gid])
         
-        NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
         
         
         //
 //        NotificationCenter.default.post(name: .unReadCount, object: nil, userInfo: ["data":dict!])
+    }
+    
+    //MARK: 消息刷新
+    fileprivate func reloadMessage() {
+        
+        NotificationCenter.default.post(name: .reloadMessageList, object: nil)
     }
 }
