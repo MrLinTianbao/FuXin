@@ -680,8 +680,13 @@ extension JCConversationListViewController {
     }
     
     @objc func connectSucceed() {
-        isConnecting = false
-        titleTipsView.isHidden = true
+        
+        
+        DispatchQueue.main.async {
+            self.isConnecting = false
+            self.titleTipsView.isHidden = true
+        }
+        
     }
     
     @objc func connecting() {

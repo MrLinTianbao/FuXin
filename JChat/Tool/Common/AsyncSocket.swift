@@ -21,8 +21,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
     
     fileprivate var timer : Timer!
     
-    var sound : Double = 0 //时间间隔
-    var sound2 : Double = 0 //聊天页面刷新时间间隔
+    var isChatVC = false //是否是聊天页面
+    var groupid = "" //所在群id
     
     var queue = DispatchQueue.init(label: "com.fuxin.thread") //全局队列
     
@@ -109,17 +109,16 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         
         
         // 打印服务端发来的消息
-        MyLog(readClientDataString ?? "")
+//        MyLog(readClientDataString ?? "")
         
-//        AlertClass.showText(_text: readClientDataString! as String)
         
         if readClientDataString == nil {
             return
         }
         
-        AsyncSocket.share.sound += 1
+       
         
-        queue.async {[weak self] in //异步线程
+        AsyncSocket.share.queue.asyncAfter(deadline: DispatchTime.now() + 0.1) {[weak self] in //异步线程
             
             let jsonArr = ((readClientDataString ?? "") as String).components(separatedBy: "\n")
             
@@ -161,7 +160,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                     
                     
                     NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
-                    self?.reloadMessage()
+                    
                 }
                 
                 
@@ -189,9 +188,8 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                         }
                         
                         NotificationCenter.default.post(name: NSNotification.Name(rawValue: kUpdateConversation), object: nil, userInfo: nil)
-                        self?.reloadMessage()
+                        
                     }
-                    
                     
                     
                     
@@ -199,19 +197,6 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
             }
             
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        //print("JSON:", type, client_id)
-        //
         
         /*
          // 3、处理请求，返回数据给客户端OK
@@ -335,7 +320,7 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
                                                             if user.username == JMSGUser.myInfo().username {
                                                                 self.createMessage(conversation: conv, jsonString: jsonString, dict: dict)
                                                                 
-                                                                self.reloadMessage()
+                                                                
                                                                 
                                                                 return
                                                             }
@@ -428,7 +413,14 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
             }
         }
         
-        
+        DispatchQueue.main.async {[weak self] in
+            
+            if (self?.isChatVC)! && self?.groupid == (conversation?.target as! JMSGGroup).gid  { //在聊天页面
+                
+                self?.reloadMessage(jsonStr: jsonString)
+                return
+            }
+        }
         
         
         let content = JMSGTextContent(text: jsonString)
@@ -457,13 +449,16 @@ class AsyncSocket: NSObject, GCDAsyncSocketDelegate {
         
         
         
+        
+        
+        
         //
 //        NotificationCenter.default.post(name: .unReadCount, object: nil, userInfo: ["data":dict!])
     }
     
     //MARK: 消息刷新
-    fileprivate func reloadMessage() {
+    fileprivate func reloadMessage(jsonStr:String) {
         
-        NotificationCenter.default.post(name: .reloadMessageList, object: nil)
+        NotificationCenter.default.post(name: .reloadMessageList, object: self, userInfo: ["data":jsonStr])
     }
 }
