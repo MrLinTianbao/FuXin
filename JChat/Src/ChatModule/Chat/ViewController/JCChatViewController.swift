@@ -10,6 +10,7 @@ import UIKit
 import YHPhotoKit
 import MobileCoreServices
 import CocoaAsyncSocket
+import SwiftyJSON
 
 class JCChatViewController: CTViewController {
     
@@ -42,6 +43,11 @@ class JCChatViewController: CTViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        
+        
+        
         _init()
         
         NotificationCenter.default.addObserver(self, selector: #selector(scrollToLast), name: .chatScrollToLast, object: nil)
@@ -53,18 +59,35 @@ class JCChatViewController: CTViewController {
     //MARK: 刷新列表
     @objc fileprivate func reloadMessageList(sender:Notification) {
         
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.2) {
+        if let json = JSON.init(sender.userInfo!).dictionaryObject {
+            
+            if let jsonString = json["data"] as? String {
+                
+                let content = JMSGTextContent(text: jsonString)
+                content.addStringExtra("success", forKey: "sendSate")
+                content.addStringExtra("0", forKey: "msgStatus")
+                
+                
+                
+                let msg = JMSGMessage.createGroupMessage(with: content, groupId: (conversation.target as! JMSGGroup).gid)
+                
+                
+                conversation.unreadCount = NSNumber.init(value: (conversation.unreadCount?.intValue ?? 0) + 1)
+                
 
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: kReloadAllMessage), object: nil)
-
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) {
-
-                    NotificationCenter.default.post(name: .chatScrollToLast, object: nil)
-                }
-
+                //保存未读消息数
+                CacheClass.setObject("\((conversation.unreadCount?.intValue) ?? 0)", forEnumKey: JMSGUser.myInfo().username + (conversation.target as! JMSGGroup).gid)
+                
+                
+                    content.addStringExtra(msg.msgId, forKey: "msgId")
+                
+                
+                self.onReceive(msg, error: nil)
 
             }
-
+        }
+        
+        
     
     }
     
@@ -144,6 +167,8 @@ class JCChatViewController: CTViewController {
     
     deinit {
         
+        AsyncSocket.share.isChatVC = false
+        AsyncSocket.share.groupid = ""
         
         NotificationCenter.default.removeObserver(self)
         JMessage.remove(self, with: conversation)
@@ -362,7 +387,10 @@ class JCChatViewController: CTViewController {
         }
         
             
-            
+        if let target = conversation.target as? JMSGGroup {
+            AsyncSocket.share.isChatVC = true
+            AsyncSocket.share.groupid = target.gid
+        }
             
         
         
